@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+
+//you may want to use android annotation
+
+//apply plugin: 'com.neenbedankt.android-apt'
+//
+// ext.androidAnnotationsVersion = '3.3.1';
+//
+//configurations {
+//    apt
+//
+//}
+//apt {
+//    arguments {
+//        resourcePackageName 'com.huxi.huxilibraries'
+//        androidManifestFile variant.outputs[0].processResources.manifestFile
+//    }
+//}
+
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "com.huxi.huxilibraries"
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true
+        }
+    }
+    // 屏蔽lint的严格检查
+    //lintOptions {
+    //abortOnError false
+    //}
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    testCompile 'junit:junit:4.12'
+
+
+    compile 'com.android.support:appcompat-v7:23.2.0'
+}
