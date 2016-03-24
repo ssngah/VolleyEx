@@ -12,6 +12,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.reflect.TypeToken;
@@ -34,14 +35,12 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.xml.transform.ErrorListener;
 
 /**
- * An instance for an activity which need to do web request is suggested
- * Request will not be performed if the certificate factory can not be created when use the https
+ * Request will not be performed if the certificate factory can not be created when you use the https
  * mode
  * Created by Phyllis on 15-4-11.
  */
 public abstract class BaseWebRequest {
     private RequestQueue mQueue;
-    public static final String TAG = "XG_VOLLEY";
     private static RequestQueue mTryBestQueue;
     private int mTimeOut = 10 * 1000;
     private static List<Request> mSuspendedRequest;
@@ -128,7 +127,9 @@ public abstract class BaseWebRequest {
                                               );
 
         mQueue.add(jsonObjectRequest);
-        Log.d(TAG,"sent request to url:"+url);
+        if(VolleyLog.DEBUG) {
+            Log.d(VolleyLog.TAG, "sent request to url:" + url);
+        }
         return jsonObjectRequest;
 
 
@@ -143,13 +144,14 @@ public abstract class BaseWebRequest {
                                                netErrorListener
                                               );
         mQueue.add(jsonObjectRequest);
-        Log.d(TAG, "sent request to url:" + url);
+        if(VolleyLog.DEBUG) {
+            Log.d(VolleyLog.TAG, "sent request to url:" + url);
+        }
         return jsonObjectRequest;
     }
 
     /**
      * the request will go on and on until it gets response
-     *
      * @param netErrorListener the call back listener when net error happens,null is allowed
      * @return The  request used to request data from web server
      */
@@ -180,7 +182,9 @@ public abstract class BaseWebRequest {
             return jsonObjectRequest;
         }
         mTryBestQueue.add(jsonObjectRequest);
-        Log.d(TAG, "sent request to url:" + url);
+        if(VolleyLog.DEBUG) {
+            Log.d(VolleyLog.TAG, "sent request to url:" + url);
+        }
 
 
         return jsonObjectRequest;
@@ -256,7 +260,9 @@ public abstract class BaseWebRequest {
                     listener.onWebCallFinish(false, error);
                 }
                 if(!TextUtils.isEmpty(error.getMessage())){
-                    Log.e(TAG, error.getMessage());
+                    if(VolleyLog.DEBUG) {
+                        Log.e(VolleyLog.TAG, error.getMessage());
+                    }
                 }
 
             }
@@ -266,14 +272,8 @@ public abstract class BaseWebRequest {
     /**
      * You can override this method to return a custom request you need,if you do this ,it is
      * your responsibility to init the request parameters like the RetryPolicy and shouldcatch etc.
-     *
-     * @param httpMethodName
-     * @param url
      * @param params         This can be an object ,if it is a String,then you it should be a
      *                       jsonString
-     * @param targetType
-     * @param listener
-     * @param errorListener
      * @return The request will be added to the request queue;
      */
     protected Request getRequest(int httpMethodName, String url,
@@ -312,7 +312,9 @@ public abstract class BaseWebRequest {
                     listener.onWebCallFinish(false,
                                              null);
                 } else {
-                    Log.d(TAG, response);
+                    if(VolleyLog.DEBUG) {
+                        Log.d(VolleyLog.TAG, response);
+                    }
                     Object result;
                     if(isAutoParseJson()) {
                         result = JsonUtils

@@ -61,8 +61,6 @@ public class MultipartRequest extends JsonStringRequest {
 
     /**
      * 注意Map里面的value中，将会使用toString方法来获得值
-     *
-     * @param params
      */
     private void buildMultipartEntity(HashMap<String, Object> params) {
         mEntityBuilder = MultipartEntityBuilder.create();
@@ -79,9 +77,7 @@ public class MultipartRequest extends JsonStringRequest {
                 int i = 0;
                 for(Object object : list) {
                     if(object instanceof File) {
-//                        FileBody fileBody = new FileBody((File)object);
-//                        mEntityBuilder.addPart(entry.getKey() + "[" + String.valueOf(i++) + "]",
-//                                               fileBody);
+
                         addFile((File)object,entry.getKey());
                     } else if(object instanceof Bitmap) {
                         addBitmap((Bitmap)object, entry.getKey());
