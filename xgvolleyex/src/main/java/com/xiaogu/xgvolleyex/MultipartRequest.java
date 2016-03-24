@@ -166,6 +166,5 @@ public class MultipartRequest extends JsonStringRequest {
                 this.progListener.transferred(this.transferred, prog);
             }
         }
-
     }
 }
