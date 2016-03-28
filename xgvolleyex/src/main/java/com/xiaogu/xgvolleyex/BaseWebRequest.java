@@ -28,11 +28,11 @@ import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
-import javax.xml.transform.ErrorListener;
 
 /**
  * Request will not be performed if the certificate factory can not be created when you use the https
@@ -48,6 +48,7 @@ public abstract class BaseWebRequest {
 
 
     public BaseWebRequest(Context context) {
+
         mQueue = getRequestQueue(context.getApplicationContext());
 
     }
@@ -105,37 +106,36 @@ public abstract class BaseWebRequest {
         return null;
     }
 
-
     /**
      * default request mode:post
      *
-     * @param params can be an common object(if it is a string ,it should be a string in json
-     *               format) ,a map or a JSONObject;
      * @return The  request used to request data from web server,you can use the request to
      * control the request like cancel it.
      */
-    protected Request sendRequest(String url, Object params, TypeToken targetType,
+    protected Request sendRequest(String url, Map<String,Object> params, TypeToken targetType,
                                   OnJobFinishListener listener) {
         return sendRequest(Request.Method.POST, url, params, targetType, listener);
     }
 
-
-    protected Request sendRequest(int httpMethod, String url, Object params, TypeToken targetType,
+    /**
+     * @param params Null is allowed.
+     *               It will be transformed to json format and added to request body when in POST request method.
+     *              However, it will be combined with the url when in GET request method .
+     */
+    protected Request sendRequest(int httpMethod, String url, Map<String,Object> params, TypeToken targetType,
                                   OnJobFinishListener listener) {
         Request jsonObjectRequest = getRequest(httpMethod, url, params,
                                                targetType, listener
                                               );
 
         mQueue.add(jsonObjectRequest);
-        if(VolleyLog.DEBUG) {
-            Log.d(VolleyLog.TAG, "sent request to url:" + url);
-        }
+        VolleyLog.d("sent request to url"+jsonObjectRequest.getUrl());
         return jsonObjectRequest;
 
 
     }
 
-    protected Request sendRequest(int httpMethod, String url, Object params, TypeToken targetType,
+    protected Request sendRequest(int httpMethod, String url, Map<String,Object> params, TypeToken targetType,
                                   OnJobFinishListener listener,
                                   Response.ErrorListener netErrorListener) {
 
@@ -144,9 +144,7 @@ public abstract class BaseWebRequest {
                                                netErrorListener
                                               );
         mQueue.add(jsonObjectRequest);
-        if(VolleyLog.DEBUG) {
-            Log.d(VolleyLog.TAG, "sent request to url:" + url);
-        }
+        VolleyLog.d( "sent request to url:" + jsonObjectRequest.getUrl());
         return jsonObjectRequest;
     }
 
@@ -156,7 +154,7 @@ public abstract class BaseWebRequest {
      * @return The  request used to request data from web server
      */
 
-    protected Request tryBestToRequest(int httpMethod, String url, Object params,
+    protected Request tryBestToRequest(int httpMethod, String url, Map<String,Object> params,
                                        TypeToken targetType,
                                        Context context,
                                        OnJobFinishListener listener,
@@ -182,14 +180,8 @@ public abstract class BaseWebRequest {
             return jsonObjectRequest;
         }
         mTryBestQueue.add(jsonObjectRequest);
-        if(VolleyLog.DEBUG) {
-            Log.d(VolleyLog.TAG, "sent request to url:" + url);
-        }
-
-
+        VolleyLog.d("sent request to url:" + jsonObjectRequest.getUrl());
         return jsonObjectRequest;
-
-
     }
 
     private void tryToReceiveNetworkState(Context context) {
@@ -234,7 +226,7 @@ public abstract class BaseWebRequest {
     }
 
     private Request getRequest(int httpMethodName, String url,
-                               Object reqJsonStr,
+                               Map<String,Object> params,
                                final TypeToken targetType,
                                final OnJobFinishListener
                                        listener) {
@@ -242,7 +234,7 @@ public abstract class BaseWebRequest {
         if (errorListener == null) {
             errorListener = getDefaultErrorListener(listener);
         }
-        return getRequest(httpMethodName, url, reqJsonStr, targetType, listener,
+        return getRequest(httpMethodName, url, params, targetType, listener,
                           errorListener);
 
     }
@@ -260,9 +252,7 @@ public abstract class BaseWebRequest {
                     listener.onWebCallFinish(false, error);
                 }
                 if(!TextUtils.isEmpty(error.getMessage())){
-                    if(VolleyLog.DEBUG) {
-                        Log.e(VolleyLog.TAG, error.getMessage());
-                    }
+                   VolleyLog.e(VolleyLog.TAG, error.getMessage());
                 }
 
             }
@@ -277,25 +267,41 @@ public abstract class BaseWebRequest {
      * @return The request will be added to the request queue;
      */
     protected Request getRequest(int httpMethodName, String url,
-                                 Object params,
+                                 Map<String,Object> params,
                                  final TypeToken targetType,
                                  final OnJobFinishListener listener,
                                  final Response.ErrorListener errorListener) {
         String jsonParams = getParamsJsonStr(params);
 
-        JsonStringRequest req = new JsonStringRequest(httpMethodName, url,
-                                                      jsonParams,
-                                                      getSuccessListener(targetType, listener),
-                                                      errorListener);
+        String requestUrl = url;
+        if(httpMethodName == Request.Method.GET && params!=null && !params.isEmpty()){
+            requestUrl = assembleGetParams(url,params);
+
+        }
+        JsonStringRequest req = new JsonStringRequest(httpMethodName, requestUrl,
+                jsonParams,
+                getSuccessListener(targetType, listener),
+                errorListener);
         req.setExtraHeaders(getHeaders());
         req.setShouldCache(false);
         RetryPolicy retryPolicy = new DefaultRetryPolicy(mTimeOut,
-                                                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                                                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
         req.setRetryPolicy(retryPolicy);
 
         return req;
 
+    }
+    private String assembleGetParams(String originalUrl,Map<String,Object> params) {
+        Set<Map.Entry<String,Object>> entrySet = params.entrySet();
+        for(Map.Entry<String,Object> entry:entrySet){
+            if(!originalUrl.contains("?")){
+                originalUrl = originalUrl+"?"+entry.getKey()+"="+entry.getValue();
+            }else{
+                originalUrl=originalUrl+"&"+entry.getKey()+"="+entry.getValue();
+            }
+        }
+        return originalUrl;
     }
 
     protected Response.Listener<String> getSuccessListener(final TypeToken targetType,
@@ -312,9 +318,7 @@ public abstract class BaseWebRequest {
                     listener.onWebCallFinish(false,
                                              null);
                 } else {
-                    if(VolleyLog.DEBUG) {
-                        Log.d(VolleyLog.TAG, response);
-                    }
+                        VolleyLog.d(VolleyLog.TAG, response);
                     Object result;
                     if(isAutoParseJson()) {
                         result = JsonUtils
