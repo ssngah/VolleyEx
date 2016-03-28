@@ -7,6 +7,7 @@ import com.android.volley.Response;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Phyllis on 15-5-23.
@@ -18,7 +19,7 @@ public abstract class BaseWebUploadImgRequest extends BaseWebRequest {
     }
 
     @Override
-    protected Request getRequest(int httpMethodName, String url, Object params,
+    protected Request getRequest(int httpMethodName, String url, Map<String,Object> params,
                                  TypeToken targetType,
                                  OnJobFinishListener listener,
                                  Response.ErrorListener errorListener) {
