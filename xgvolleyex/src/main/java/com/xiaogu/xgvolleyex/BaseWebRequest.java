@@ -69,22 +69,6 @@ public abstract class BaseWebRequest {
         mTimeOut = timeOut;
     }
 
-//    private RequestQueue getRequestQueue(Context context) {
-////        if(isHttpsMode()) {
-////            return createHttpsQueue(context);
-////
-////        } else {
-////            return Volley.newRequestQueue(context);
-////        }
-//        return Volley.newRequestQueue(context,mSettings.getHttpStack(context));
-//    }
-
-//    private RequestQueue createHttpsQueue(Context context) {
-//        SSLSocketFactory factory = SSLSocketFactoryCreator.getSSLSocketFactory(context,
-//                getCertificateId());
-//        HttpStack stack = new VerifyAllHostNameHurlStack(null, factory);
-//        return Volley.newRequestQueue(context, stack);
-//    }
     /**
      * default request mode:post
      *
@@ -109,7 +93,7 @@ public abstract class BaseWebRequest {
 
         initRequestQueue();
         mQueue.add(jsonObjectRequest);
-        VolleyLog.d("sent request to url："+jsonObjectRequest.getUrl());
+        VolleyLog.d("sent request to url：%s",jsonObjectRequest.getUrl());
         return jsonObjectRequest;
 
 
@@ -125,7 +109,7 @@ public abstract class BaseWebRequest {
                                               );
         initRequestQueue();
         mQueue.add(jsonObjectRequest);
-        VolleyLog.d( "sent request to url:" + jsonObjectRequest.getUrl());
+        VolleyLog.d( "sent request to url:%s" , jsonObjectRequest.getUrl());
         return jsonObjectRequest;
     }
 
@@ -161,7 +145,7 @@ public abstract class BaseWebRequest {
             return jsonObjectRequest;
         }
         mTryBestQueue.add(jsonObjectRequest);
-        VolleyLog.d("sent request to url:" + jsonObjectRequest.getUrl());
+        VolleyLog.d("sent request to url:%s" ,jsonObjectRequest.getUrl());
         return jsonObjectRequest;
     }
 
@@ -292,6 +276,9 @@ public abstract class BaseWebRequest {
 
             @Override
             public void onResponse(String response) {
+                if(!TextUtils.isEmpty(response)){
+                    VolleyLog.d("request response：%s",response);
+                }
                 if(listener == null) {
                     return;
                 }
@@ -299,7 +286,7 @@ public abstract class BaseWebRequest {
                     listener.onWebCallFinish(false,
                                              null);
                 } else {
-                        VolleyLog.d("request response："+response);
+
                     Object result;
                     if(isAutoParseJson()) {
                         result = JsonUtils
