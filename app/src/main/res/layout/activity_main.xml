@@ -14,4 +14,10 @@
         android:layout_width = "wrap_content"
         android:layout_height = "wrap_content"
         android:text = "Hello World!"/>
+    <Button
+        android:layout_width = "wrap_content"
+        android:layout_height = "wrap_content"
+        android:text="测试"
+        android:onClick="onTestClick"/>
+
 </RelativeLayout>

@@ -39,3 +39,11 @@ captures/
 
 # Keystore files
 *.jks
+
+app/src/main/AndroidManifest.xml
+
+app/src/main/java/com/huxi/huxilibraries/TestWebService.java
+
+app/src/main/java/com/huxi/huxilibraries/utils/MD5.java
+
+app/src/main/java/com/huxi/huxilibraries/MainActivity.java
